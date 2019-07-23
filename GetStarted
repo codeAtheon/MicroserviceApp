@@ -1,0 +1,5 @@
+1. After checkout this project from git hub, Import it to eclipse as gradle project.
+2. Right click on the project and run as springboot application.
+3. Go to the browser and access http://localhost:8080/employees
+4. If you are enabled H2DB configurations in application.properties. Need to access http://localhost:8080/h2-console to connect to DB and then we can insert records.
+ 

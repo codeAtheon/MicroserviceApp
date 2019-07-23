@@ -1,0 +1,139 @@
+buildscript {
+	ext {
+		springBootVersion = '2.0.5.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'jacoco'
+apply plugin: 'pmd'
+apply plugin: 'checkstyle'
+apply plugin: 'findbugs'
+
+
+dependencyManagement {
+    imports {
+        mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
+    }
+    applyMavenExclusions = false
+}
+
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+repositories {
+	mavenCentral()
+	 jcenter()
+}
+jacoco {
+        toolVersion = '0.7.1.201405082137'
+    }
+pmd {
+  ignoreFailures = true
+   pmdTest.enabled=false
+   ruleSets = [
+           'java-basic',
+           'java-braces',
+           'java-clone',
+           'java-codesize',
+           'java-comments',
+           'java-controversial',
+           'java-coupling',
+           'java-design',
+           'java-empty',
+           'java-finalizers',
+           'java-imports',
+           'java-optimizations',
+           'java-strictexception',
+           'java-strings',
+           'java-typeresolution',
+           'java-unnecessary',
+           'java-unusedcode'
+   ]
+}
+checkstyle {
+    toolVersion '8.2'
+    configFile file("./checkstyle.xml")
+}
+task findSecurityBugs(type: FindBugs) {
+
+    classes = fileTree(project.rootDir.absolutePath).include("**/*.class");
+    source = fileTree(project.rootDir.absolutePath).include("**/*.java");
+    classpath = files()
+    pluginClasspath = project.configurations.findbugsPlugins
+
+    findbugs {
+        toolVersion = "3.0.1"
+        sourceSets = [sourceSets.main] // [sourceSets.main] for Java project
+        ignoreFailures = true
+        reportsDir = file("$project.buildDir/findbugsReports")
+        effort = "max"
+        reportLevel = "low"
+     //   includeFilter = file("$rootProject.projectDir/fsb-include.xml")
+    //    excludeFilter = file("$rootProject.projectDir/fsb-exclude.xml")
+    }
+}
+configurations {
+    integrationTestCompile.extendsFrom testCompile
+    integrationTestRuntime.extendsFrom testRuntime
+}
+dependencies {
+	compile('org.springframework.boot:spring-boot-starter-data-jpa')
+	compile('org.springframework.boot:spring-boot-starter-web')
+	compile('com.ibm.db2.jcc:db2jcc:db2jcc4')
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+	testCompile 'junit:junit:[4,)'
+	integrationTestCompile 'org.assertj:assertj-core:3.0.0'
+}
+
+test {
+    testLogging {
+        // Show that tests are run in the command-line output
+        events 'skipped', 'passed'
+    }
+    }
+    
+
+jacocoTestReport {
+        additionalSourceDirs = files(sourceSets.main.allSource.srcDirs)
+        sourceDirectories = files(sourceSets.main.allSource.srcDirs)
+        classDirectories =  files(sourceSets.main.output)
+        reports {
+            html.enabled = true
+           }
+    }
+sourceSets {
+   //Declaring this source set creates compile time and runtime configurations for it.
+integrationTest {
+       java {
+           compileClasspath += main.output + test.output
+           runtimeClasspath += main.output + test.output
+           srcDir file('src/integration-test/java')
+       }
+       //resources.srcDir file('src/integration-test/resources')
+   }
+}
+ task integrationTest(type: Test) {
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    //If you want to ensure that integration tests are run every time when you invoke
+    //this task, uncomment the following line.
+    outputs.upToDateWhen { false }
+}
+
+//Ensure that the check task fails the build if there are failing integration tests.
+//check.dependsOn integrationTest
+//Ensure that our unit tests are run before our integration tests
+integrationTest.mustRunAfter test
+
+
