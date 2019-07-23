@@ -3,9 +3,7 @@ pipeline {
   stages {
     stage('Build') {
       steps {
-        sh '''docker ps -q --filter "name=microservicepoc-1244" | grep -q . && docker stop microservicepoc-1244 && docker rm -fv microservicepoc-1244
-
-chmod +x gradlew
+        sh '''chmod +x gradlew
 ./gradlew clean build -x test -x check'''
       }
     }
@@ -40,9 +38,7 @@ chmod +x gradlew
     }
     stage('Deploy') {
       steps {
-        sh ''' 
-
-docker build --tag mkarthikdevops/microserviceimage:$BUILD_NUMBER .
+        sh '''docker build --tag mkarthikdevops/microserviceimage:$BUILD_NUMBER .
 
  '''
       }
