@@ -27,9 +27,21 @@ dependencyManagement {
     applyMavenExclusions = false
 }
 
-version = '0.0.1-SNAPSHOT'
+
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
+
+task microserviceBuild(type:  microserviceBuildType) {
+    destFile = file("$buildDir/MicroserviceApp.jar")
+}
+
+artifacts {
+    archives(microserviceBuild.destFile) {
+        name 'microserviceApp'
+        type 'jar'
+        builtBy microserviceBuild
+    }
+}
 
 repositories {
 	mavenCentral()
